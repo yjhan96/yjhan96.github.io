@@ -228,12 +228,108 @@ each state transition and saved such mask in the experience replay as well.
 Then, I also masked invalid moves when updating the Q function. This led the
 agent to explore and learn more efficiently.
 
-### Why It Didn't Work Out
+### Challenges
 
-Sadly, after all these optimizations, 
+Even with all the optimizations above, DQN setup didn't pan out as much as I
+wished. One of the reasons is the exploration - even though the agent couldn't
+make an obviously invalid move (e.g. the nurse can't travel while they are
+treating a patient), they could still make moves that will eventually lead to
+patients not getting treated on time (e.g. moving to a different clinic when the
+patient at the current clinic needs treatment very soon).
+
+Even though I believe the model eventually learned these moves, because the
+agent explored using $\epsilon$-greedy exploration, the exploration usually led
+to a dead end often. I think there's a better way to explore the space than just
+choosing a random action, but I haven't explored this yet.
+
+Also, even though there are many great RL frameworks, I found it difficult to
+use them "off the shelf" - e.g. the framework had a DQN algorithm, but I wanted
+to make changes on the neural network to include invalid actions. I probably
+haven't explored the tools much yet, so if you think there's a tool I could use,
+please let me know!
 
 ## Policy Gradient, and Attention
 
+After numerous unsuccessful attempts to make DQN setup work, I went back to
+research papers to see whether there are any previous works done to solve
+problems like this. Luckily, there were a few promising papers related to
+solving combinatorial optimization problems (e.g. traveling salesman problem
+(TSP), binpacking, etc.) using reinforcement learning!
 
+While reading the [survey paper](https://arxiv.org/abs/2003.03600), I found out
+that a lot of the successful approaches had two common characteristics: they
+often used a policy gradient approach, and they used a more sophisticated neural
+network architecture than just an MLP. I'll focus on addressing my experiences
+while working with these two techniques.
+
+Before going into the two techniques, I'd like to say a big thank you to the
+authors of ["Attention, Learn to Solve Routing
+Problems!"](https://arxiv.org/abs/1803.08475). The paper is a great read, and a
+lot of the ideas below are inspired from it.
+
+
+### Policy Gradient
+
+An immediate benefit I saw from the policy gradient approach compared to DQN was
+the stability of the agent over the training. As I addressed above, because of
+$\epsilon$-greedy exploration, the DQN agent's total reward was pretty flaky if
+their random action led to an invalid move. However, because the neural network
+to approximate the policy was fully responsible for the exploration, the policy
+gradient-based agent didn't suffer from a heuristic-based exploration that DQN
+faced.
+
+However, this didn't mean that the algorithm didn't have its fault. One major
+problem I saw was that it was very easy for the agent to converge to a locally
+optimal solution. Once it reached to the local optima, the gradient quickly went
+to zero and didn't explore.
+
+Why would this happen? One hypothesis is that the gradient is heavily
+incentivized to move to the first successful solution. In the current setting,
+because the agent will receive zero reward if they fail to treat all the
+patients, any failed attempt will give zero gradient. When it's rare for the
+agent to get any reward, the policy will be updated to be closer to the first
+policy that finds _a_ solution.
+
+I have not tried it yet, but one way to prevent this is to [give more rich
+environments](https://arxiv.org/pdf/1707.02286) to prevent "overfitting". Even
+if we're interested in finding the optimal solution for a particular clinic
+setup, by giving a similar environment during training (e.g. give patients of
+different treatment time, different distance between clinics, etc.), the agent
+is less likely to overfit.
+
+### Attention
+
+One interesting aspect of the problem is that there's a relationship between the
+environment characteristics and the set of actions the agent can take - the set
+of actions is defined by the number of patients and clinics the environment has.
+This setup is also similar for TSP - an "action" the salesman can take in a
+given state is based on the the set of nodes provided by the graph.
+
+One striking observation is that there's a parallel structure between choosing
+the next best action in our environment and choosing the next best token to
+choose based on the current sequence of tokens, which as we all know the
+attention architecture is great at! To be more concrete, we can create a network
+where:
+
+1. Encode the environment by embedding the state of each entities (nurses,
+   patients, clinics) and apply self-attention to each entity. Unlike the
+   sequence model, we don't need to include positional encoding.
+2. Decode the state by applying attention from the encoded state to the
+   embeddings of "actionable" entities (patients and clinics) to choose the best
+   action to take.
+
+["Attention, Learn to Solve Routing
+Problems!"](https://arxiv.org/abs/1803.08475) uses such idea to solve TSP, and
+the model seems to behave pretty well in our setup, too.
 
 ## Conclusion
+
+Even though the project still has a lot more improvements to be made, I learned
+a lot from this journey. One thing that particularly excites me the most is that
+there are lots of opportunities that can make tooling better to make RL research
+better - simulating many environments in parallel, finding the right amount of
+abstractions to easily "plug and play", etc. 
+
+I'm thinking of focusing on engineering to make the research environment better
+and revisit the problem. If you have any suggestions on how to make RL research
+experience better, I'd be happy to hear your thoughts.
