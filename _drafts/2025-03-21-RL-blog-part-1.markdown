@@ -14,6 +14,9 @@ thought it's worth sharing my experiences so far.
 Note that I won't go over much details on each of the algorithms I used - I'll
 mostly focus on empirical observations I found when I applied them.
 
+The source code is [here](https://github.com/yjhan96/clinic-project). It's
+pretty messy, so I'll clean it up in the upcoming weeks.
+
 ## Problem Statement
 The project idea came out when I was talking with my girlfriend about her work.
 She said that there are companies that own multiple clinics and help patients
