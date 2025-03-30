@@ -4,13 +4,12 @@ title: About
 permalink: /about/
 ---
 
-Hi, I'm yjhan96.
-
-## Brief Bio
+Hi, I'm Albert Han (yjhan96).
 
 I studied computer science at Carnegie Mellon University.
 
-I write software to help data-driven/quantitative research for a living.
+I currently write softwares that help people do statistical/machine learning
+research.
 
 My interests include math, computers, running, books, personal finance, and
 education.
