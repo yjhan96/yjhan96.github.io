@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Excelify: A DataFrame-like API to build a spreadsheet"
+title: "Excelify: A DataFrame-like library to build spreadsheets that both humans and LLMs can understand"
 date:  2025-07-19 16:31:00 -0400
 categories: excel programming
 ---
